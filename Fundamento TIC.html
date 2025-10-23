@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIC SYNTHESIS: Fundamentos Tecnológicos</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            /* Colores Base Morados/Rosas/Lavanda (Subtonos) */
+            --bg-dark: #2C1847; /* Morado Oscuro Profundo (Fondo) */
+            --bg-container: #5C3A7E; /* Morado Medio (Contenedores) */
+            --color-pink-light: #FFC0CB; /* Rosa Pálido (Resaltado/Éxito) */
+            --color-purple-medium: #9370DB; /* Lavanda (Accento/Bordes) */
+            --color-magenta-dark: #C71585; /* Magenta Oscuro (Botones/Interacción) */
+            
+            /* Colores Funcionales (Éxito/Error) */
+            --color-text: #F0F0F0;
+            --color-green: #3CB371; /* Verde (Éxito) */
+            --color-red: #DC143C; /* Rojo (Error) */
+            
+            /* Degradados y Efectos */
+            --gradient-main: linear-gradient(135deg, var(--bg-dark) 0%, #6A5ACD 100%); /* Morado a Azul Púrpura */
+            --gradient-button: linear-gradient(45deg, var(--color-magenta-dark), var(--color-pink-light)); /* Magenta a Rosa */
+            --glow-pink-purple: 0 0 15px rgba(255, 192, 203, 0.8), 0 0 10px rgba(147, 112, 219, 0.7); /* Glow Combinado */
+            --glow-green: 0 0 15px rgba(60, 179, 113, 0.7);
+            --glow-red: 0 0 15px rgba(220, 20, 60, 0.7);
+            
+            --font-display: 'Orbitron', sans-serif; 
+            --font-mono: 'Share Tech Mono', monospace; 
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--color-text);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: radial-gradient(circle at center, rgba(147, 112, 219, 0.2) 0%, transparent 70%); 
+        }
+
+        #game-container {
+            text-align: center;
+            border: 2px solid var(--color-pink-light);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: var(--glow-pink-purple);
+            background: var(--gradient-main);
+            width: 90%;
+            max-width: 1000px;
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        #game-container::before { 
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            color: var(--color-pink-light);
+            text-shadow: 0 0 10px rgba(255, 192, 203, 0.8);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        #game-container > p {
+            font-size: 1.1em;
+            color: var(--color-text);
+            margin-bottom: 25px;
+        }
+
+        #menu-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 1px dashed rgba(255, 192, 203, 0.5);
+            padding-bottom: 15px;
+        }
+
+        #menu-selector button {
+            background: var(--gradient-button);
+            color: var(--bg-dark);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: var(--font-display);
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+
+        #menu-selector button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: var(--glow-pink-purple);
+        }
+
+        #menu-selector button.active {
+            background: var(--color-green);
+            color: white;
+            transform: scale(1.08);
+            box-shadow: var(--glow-green);
+            border: 2px solid var(--color-pink-light);
+        }
+
+        .game-section {
+            padding: 30px;
+            border: 1px solid var(--color-pink-light);
+            border-radius: 10px;
+            margin-top: 20px;
+            min-height: 400px;
+            text-align: left;
+            background-color: rgba(44, 24, 71, 0.6); 
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3), var(--glow-pink-purple);
+            position: relative;
+            z-index: 2;
+        }
+
+        .game-section h2 {
+            font-family: var(--font-display);
+            color: var(--color-pink-light);
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(255, 192, 203, 0.6);
+            font-size: 1.8em;
+        }
+        .game-section > p {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.05em;
+            color: var(--color-text);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+        /* --- General Feedback/Buttons --- */
+        .feedback-message {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            font-family: var(--font-display);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .feedback-message.success { color: var(--color-green); text-shadow: var(--glow-green); }
+        .feedback-message.error { color: var(--color-red); text-shadow: var(--glow-red); }
+        .feedback-message.info { color: var(--color-pink-light); text-shadow: var(--glow-pink-purple); }
+
+        .game-button {
+            padding: 12px 25px;
+            margin: 10px 10px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+            background: var(--gradient-button);
+            color: var(--bg-dark);
+        }
+        .game-button:hover {
+            transform: scale(1.02);
+            box-shadow: var(--glow-pink-purple);
+        }
+        .game-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .game-button.restart {
+            background: linear-gradient(45deg, var(--color-red), #ff668a);
+            box-shadow: var(--glow-red);
+            color: white;
+        }
+
+        /* 1. Trivia de Conceptos (TRIVIA) - Estilos mantenidos */
+        .trivia-question {
+            background: var(--bg-container);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 5px solid var(--color-purple-medium);
+        }
+        .trivia-question strong {
+            color: var(--color-pink-light);
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-family: var(--font-display);
+        }
+        .trivia-option label {
+            display: block;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: var(--bg-dark);
+            border: 1px solid var(--color-purple-medium);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .trivia-option label:hover {
+            background: #402663; 
+        }
+        .trivia-option input:checked + label {
+            background: var(--color-magenta-dark);
+            border-color: var(--color-pink-light);
+            font-weight: bold;
+        }
+        
+        /* 2. Armar la Computadora (BUILDER) - Estilos mantenidos */
+        #pc-builder-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 400px;
+            position: relative;
+        }
+        #component-list {
+            flex: 0 0 250px;
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--color-purple-medium);
+        }
+        .component-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--color-magenta-dark);
+            color: white;
+            border-radius: 5px;
+            cursor: grab;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        #computer-case, #network-diagram {
+            flex: 1;
+            max-width: 400px;
+            height: 350px;
+            background: #1A0F2B; 
+            border: 3px solid var(--color-pink-light);
+            border-radius: 10px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.5s;
+        }
+
+        /* Slots para PC */
+        .slot {
+            position: absolute;
+            border: 2px dashed var(--color-purple-medium);
+            background: rgba(147, 112, 219, 0.1);
+            text-align: center;
+            line-height: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: border-color 0.3s;
+            padding: 5px;
+        }
+        .slot.cpu { top: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; line-height: 70px; }
+        .slot.ram { top: 110px; left: 10%; width: 120px; height: 30px; line-height: 20px; }
+        .slot.gpu { top: 150px; left: 10%; width: 200px; height: 40px; line-height: 30px; }
+        .slot.storage { top: 250px; left: 50%; transform: translateX(-50%); width: 100px; height: 30px; line-height: 20px; }
+        
+        /* Slots para Red (LAN) */
+        .slot.lan-pc { top: 20px; left: 20px; width: 100px; height: 100px; border-radius: 50%; line-height: 90px; }
+        .slot.lan-router { top: 180px; left: 150px; width: 80px; height: 80px; line-height: 70px; }
+        .slot.lan-cable { top: 130px; left: 50%; transform: translateX(-50%) rotate(90deg); width: 200px; height: 20px; line-height: 10px; border-radius: 0; }
+        .slot.lan-server { top: 20px; right: 20px; width: 100px; height: 100px; line-height: 90px; }
+
+
+        .filled-slot {
+            border: 2px solid var(--color-green) !important;
+            background-color: rgba(60, 179, 113, 0.2) !important;
+        }
+        .component-item.dropped {
+            display: none !important; /* Ocultar permanentemente de la lista */
+        }
+        
+        /* 3. Desafío de Clasificación (CLASSIFICATION) */
+        .item-draggable {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: var(--color-purple-medium);
+            color: white;
+            border-radius: 5px;
+            cursor: grab;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .drop-zone {
+            flex: 1;
+            background: rgba(44, 24, 71, 0.8); 
+            border: 3px dashed var(--color-purple-medium);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            transition: border-color 0.3s, background-color 0.3s;
+            min-height: 120px; 
+            max-width: 250px;
+            margin: 0 auto;
+        }
+
+        .drop-zone h3 {
+            font-family: var(--font-display);
+            color: var(--color-pink-light);
+            margin-top: 0;
+            text-shadow: 0 0 5px rgba(255, 192, 203, 0.5);
+            border-bottom: 1px solid rgba(255, 192, 203, 0.3);
+            padding-bottom: 5px;
+        }
+        .drop-zone.drag-hover {
+            border-color: var(--color-pink-light);
+            background-color: rgba(60, 179, 113, 0.1);
+        }
+        .drop-zone .dropped-item {
+            background: var(--bg-dark);
+            padding: 5px;
+            margin: 5px;
+            border-radius: 3px;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>TIC SYNTHESIS: FUNDAMENTOS TECNOLÓGICOS</h1>
+    <p>💡 Pon a prueba tu conocimiento sobre la arquitectura, conceptos y términos clave de las Tecnologías de la Información y Comunicación.</p>
+    
+    <div id="menu-selector">
+        <button id="btn-trivia" class="active" onclick="showGame('trivia')">1. TRIVIA DE CONCEPTOS</button>
+        <button id="btn-builder" onclick="showGame('builder')">2. MINI-JUEGO ARMADO</button>
+        <button id="btn-classification" onclick="showGame('classification')">3. DESAFÍO DE CLASIFICACIÓN</button>
+    </div>
+
+    <div id="trivia-section" class="game-section">
+        <h2>Trivia de Conceptos Básicos</h2>
+        <p>Identifica la categoría o la definición correcta para cada término de las TIC.</p>
+
+        <div id="trivia-display">
+            </div>
+        
+        <div id="trivia-feedback" class="feedback-message"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="trivia-check-btn" class="game-button">VERIFICAR TRIVIA</button>
+            <button id="trivia-restart-btn" class="game-button restart hidden">REINICIAR TRIVIA</button>
+        </div>
+    </div>
+
+    <div id="builder-section" class="game-section hidden">
+        <h2>Mini-Juego: Armar la Computadora</h2>
+        <p id="builder-instructions">Arrastra cada componente de la lista al lugar correcto dentro del gabinete (Motherboard).</p>
+        
+        <div id="pc-builder-container">
+            <div id="component-list">
+                <div style="text-align: center; margin-top: 10px;">Componentes:</div>
+                </div>
+
+            <div id="computer-case" class="current-stage">
+                <div class="slot cpu" data-type="CPU" data-stage="PC">CPU Slot</div>
+                <div class="slot ram" data-type="RAM" data-stage="PC">RAM Slots</div>
+                <div class="slot gpu" data-type="GPU" data-stage="PC">GPU Slot</div>
+                <div class="slot storage" data-type="Almacenamiento" data-stage="PC">Storage Slot</div>
+            </div>
+
+            <div id="network-diagram" class="hidden" style="opacity: 0;">
+                <div class="slot lan-pc" data-type="PC" data-stage="LAN">PC (Cliente)</div>
+                <div class="slot lan-router" data-type="Router" data-stage="LAN">Router</div>
+                <div class="slot lan-cable" data-type="Cable" data-stage="LAN">Cable de Red</div>
+                <div class="slot lan-server" data-type="Servidor" data-stage="LAN">Servidor</div>
+            </div>
+        </div>
+        
+        <div id="builder-feedback" class="feedback-message"></div>
+        <div style="text-align: center;">
+            <button id="builder-check-btn" class="game-button">VERIFICAR ARMADO</button>
+            <button id="builder-next-btn" class="game-button hidden">SIGUIENTE RETO (RED) ➡️</button>
+            <button id="builder-restart-btn" class="game-button restart hidden">REINICIAR JUEGO</button>
+        </div>
+    </div>
+
+    <div id="classification-section" class="game-section hidden">
+        <h2>Desafío de Clasificación de Componentes</h2>
+        <p>Arrastra cada término a la categoría correcta (Hardware, Software o Red).</p>
+        
+        <div id="classification-container" style="display: flex; justify-content: space-around; gap: 20px; align-items: flex-start;">
+            
+            <div id="item-pool" style="flex: 1; max-width: 250px; background: var(--bg-dark); padding: 15px; border-radius: 8px; border: 1px solid var(--color-purple-medium); min-height: 250px;">
+                <div style="font-weight: bold; color: var(--color-pink-light); margin-bottom: 10px; text-align: center;">Términos a Clasificar:</div>
+                </div>
+
+            <div id="drop-zones" style="flex: 2; display: flex; justify-content: space-around; gap: 10px; flex-wrap: wrap;">
+                <div class="drop-zone" data-category="Hardware">
+                    <h3>⚙️ HARDWARE</h3>
+                </div>
+                <div class="drop-zone" data-category="Software">
+                    <h3>💾 SOFTWARE</h3>
+                </div>
+                <div class="drop-zone" data-category="Red">
+                    <h3>🌐 RED</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="classification-feedback" class="feedback-message"></div>
+        <div style="text-align: center;">
+             <button id="classification-check-btn" class="game-button">COMPROBAR CLASIFICACIÓN</button>
+             <button id="classification-restart-btn" class="game-button restart hidden">REINICIAR DESAFÍO</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- Configuración Global ---
+    const GAMES = ['trivia', 'builder', 'classification'];
+    const ROOT_STYLES = getComputedStyle(document.documentElement);
+    const VAR_COLOR_RED = ROOT_STYLES.getPropertyValue('--color-red').trim();
+    const VAR_COLOR_GREEN = ROOT_STYLES.getPropertyValue('--color-green').trim();
+    const VAR_COLOR_PURPLE_MEDIUM = ROOT_STYLES.getPropertyValue('--color-purple-medium').trim();
+
+    // --- Funciones Globales ---
+    function setFeedback(element, message, type) {
+        element.innerHTML = message;
+        element.className = 'feedback-message';
+        element.classList.add(type);
+    }
+    
+    function showGame(game) {
+        GAMES.forEach(g => {
+            document.getElementById(`${g}-section`).classList.add('hidden');
+            document.getElementById(`btn-${g}`).classList.remove('active');
+        });
+        document.getElementById(`${game}-section`).classList.remove('hidden');
+        document.getElementById(`btn-${game}`).classList.add('active'); 
+
+        // Re-inicializar solo el juego que se va a mostrar
+        if (game === 'trivia') initTriviaGame();
+        if (game === 'builder') initPCBuilderGame();
+        if (game === 'classification') initClassificationGame();
+    }
+    
+    // --- 1. TRIVIA DE CONCEPTOS (TRIVIA) ---
+
+    const TRIVIA_QUESTIONS = [
+        {
+            question: "Parte física y tangible de la computadora.",
+            options: ["Software", "Hardware", "Firmware", "Periférico"],
+            correct: "Hardware"
+        },
+        {
+            question: "Programas y datos que permiten operar la computadora.",
+            options: ["Hardware", "Sistema Operativo", "Software", "Navegador"],
+            correct: "Software"
+        },
+        {
+            question: "Unidad que ejecuta las instrucciones de un programa.",
+            options: ["RAM", "Almacenamiento", "CPU", "Tarjeta Gráfica"],
+            correct: "CPU"
+        }
+    ];
+
+    const triviaDisplay = document.getElementById('trivia-display');
+    const triviaFeedback = document.getElementById('trivia-feedback');
+    const triviaCheckBtn = document.getElementById('trivia-check-btn');
+    const triviaRestartBtn = document.getElementById('trivia-restart-btn');
+    
+    let triviaAnswers = {}; 
+
+    function initTriviaGame() {
+        triviaAnswers = {};
+        triviaDisplay.innerHTML = '';
+        triviaCheckBtn.classList.remove('hidden');
+        triviaRestartBtn.classList.add('hidden');
+        triviaCheckBtn.disabled = false;
+        setFeedback(triviaFeedback, 'Selecciona la opción correcta para cada pregunta.', 'info');
+
+        TRIVIA_QUESTIONS.forEach((q, qIndex) => {
+            const qBox = document.createElement('div');
+            qBox.classList.add('trivia-question');
+            qBox.innerHTML = `<strong>${qIndex + 1}. ${q.question}</strong>`;
+            
+            // Barajar opciones
+            const shuffledOptions = q.options.slice().sort(() => Math.random() - 0.5);
+            shuffledOptions.forEach(optionText => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('trivia-option');
+                const uniqueId = `q${qIndex}opt${optionText.replace(/\s/g, '').slice(0, 5)}`;
+                optionDiv.innerHTML = `
+                    <input type="radio" id="${uniqueId}" name="q${qIndex}" value="${optionText}">
+                    <label for="${uniqueId}">${optionText}</label>
+                `;
+                qBox.appendChild(optionDiv);
+            });
+            triviaDisplay.appendChild(qBox);
+        });
+
+        // Add change listener to capture answers
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.onchange = (e) => {
+                const qIndex = parseInt(e.target.name.replace('q', ''));
+                triviaAnswers[qIndex] = e.target.value;
+            };
+        });
+    }
+
+    function checkTrivia() {
+        let correctCount = 0;
+        const totalQuestions = TRIVIA_QUESTIONS.length;
+
+        TRIVIA_QUESTIONS.forEach((q, qIndex) => {
+            const selectedAnswer = triviaAnswers[qIndex];
+            
+            document.querySelectorAll(`input[name="q${qIndex}"]`).forEach(radio => {
+                radio.disabled = true;
+                const label = radio.nextElementSibling;
+                
+                if (radio.value === q.correct) {
+                    label.style.backgroundColor = VAR_COLOR_GREEN;
+                    label.style.color = 'white';
+                    label.style.borderColor = 'white';
+                } else if (radio.value === selectedAnswer && selectedAnswer !== q.correct) {
+                    label.style.backgroundColor = VAR_COLOR_RED;
+                }
+            });
+
+            if (selectedAnswer === q.correct) {
+                correctCount++;
+            }
+        });
+
+        triviaCheckBtn.classList.add('hidden');
+        triviaRestartBtn.classList.remove('hidden');
+
+        if (correctCount === totalQuestions) {
+            setFeedback(triviaFeedback, `🎉 ¡Conocimiento Perfecto! ${correctCount}/${totalQuestions} conceptos correctos.`, 'success');
+        } else {
+            setFeedback(triviaFeedback, `❌ Buen intento. ${correctCount}/${totalQuestions} conceptos correctos. Repasa los fundamentos.`, 'error');
+        }
+    }
+    
+    // --- 2. MINI-JUEGO DE ARMAR (BUILDER) ---
+
+    const STAGE_PC = {
+        name: "Armar la Computadora (PC)",
+        instructions: "Arrastra cada componente de la lista al lugar correcto dentro del gabinete (Motherboard).",
+        components: [
+            { name: "Microprocesador", type: "CPU" },
+            { name: "Memoria de Acceso Aleatorio", type: "RAM" },
+            { name: "Tarjeta Gráfica", type: "GPU" },
+            { name: "Disco Duro (HDD/SSD)", type: "Almacenamiento" }
+        ],
+        slots: document.querySelectorAll('#computer-case .slot')
+    };
+
+    const STAGE_LAN = {
+        name: "Armar la Red Local (LAN)",
+        instructions: "Ahora, arma la red: arrastra los elementos de la lista al diagrama de red.",
+        components: [
+            { name: "Computadora Cliente", type: "PC" },
+            { name: "Dispositivo de Conexión", type: "Router" },
+            { name: "Medio de Transmisión", type: "Cable" },
+            { name: "Recurso Central", type: "Servidor" }
+        ],
+        slots: document.querySelectorAll('#network-diagram .slot')
+    };
+
+    const componentList = document.getElementById('component-list');
+    const builderFeedback = document.getElementById('builder-feedback');
+    const builderCheckBtn = document.getElementById('builder-check-btn');
+    const builderNextBtn = document.getElementById('builder-next-btn');
+    const builderRestartBtn = document.getElementById('builder-restart-btn');
+    const builderInstructions = document.getElementById('builder-instructions');
+    const computerCase = document.getElementById('computer-case');
+    const networkDiagram = document.getElementById('network-diagram');
+
+    let draggedComponent = null;
+    let currentStage = STAGE_PC;
+
+    function initPCBuilderGame() {
+        // Reinicio General
+        builderNextBtn.classList.add('hidden');
+        builderRestartBtn.classList.add('hidden');
+        
+        // Cargar Stage PC por defecto
+        currentStage = STAGE_PC;
+        loadStage(currentStage);
+        networkDiagram.classList.add('hidden');
+        networkDiagram.style.opacity = '0';
+        computerCase.classList.remove('hidden');
+        computerCase.style.opacity = '1';
+    }
+
+    function loadStage(stage) {
+        componentList.innerHTML = '<div style="text-align: center; margin-top: 10px;">Componentes:</div>';
+        builderInstructions.textContent = stage.instructions;
+        builderCheckBtn.classList.remove('hidden');
+        builderCheckBtn.disabled = true;
+        setFeedback(builderFeedback, 'Arrastra y suelta los componentes.', 'info');
+        
+        // Reset slots for current stage
+        stage.slots.forEach(slot => {
+            slot.classList.remove('filled-slot');
+            slot.innerHTML = slot.dataset.type + (stage === STAGE_PC ? ' Slot' : '');
+            slot.dataset.filled = '';
+            slot.style.borderColor = VAR_COLOR_PURPLE_MEDIUM;
+            slot.style.boxShadow = 'none';
+        });
+
+        // Crear componentes arrastrables
+        stage.components.slice().sort(() => Math.random() - 0.5).forEach(comp => {
+            const item = document.createElement('div');
+            item.classList.add('component-item');
+            item.textContent = comp.name;
+            item.dataset.type = comp.type;
+            item.setAttribute('draggable', true);
+            
+            item.addEventListener('dragstart', (e) => {
+                draggedComponent = e.target;
+                e.dataTransfer.setData('text/plain', comp.type);
+                setTimeout(() => e.target.style.opacity = '0.5', 0);
+            });
+            item.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+
+            componentList.appendChild(item);
+        });
+        
+        // Setup drop zones for current stage
+        setupDropZones(stage.slots, stage.components.length);
+    }
+    
+    function setupDropZones(slots, requiredComponents) {
+        // Clonar para limpiar listeners
+        slots.forEach(slot => {
+            slot.replaceWith(slot.cloneNode(true));
+        });
+        
+        // Re-obtener la lista de slots después del clonado
+        // Es crucial que esta re-obtención apunte a los slots en el DOM activo
+        const currentSlotsSelector = currentStage === STAGE_PC ? '#computer-case .slot' : '#network-diagram .slot';
+        const newSlots = document.querySelectorAll(currentSlotsSelector); 
+        currentStage.slots = newSlots; // Actualizar la referencia en currentStage
+
+        newSlots.forEach(slot => {
+            slot.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                if (slot.dataset.stage === currentStage.name.split('(')[1].replace(')', ''))
+                    slot.style.borderColor = 'var(--color-pink-light)';
+            });
+            slot.addEventListener('dragleave', (e) => {
+                slot.style.borderColor = VAR_COLOR_PURPLE_MEDIUM;
+            });
+            slot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                slot.style.borderColor = VAR_COLOR_PURPLE_MEDIUM;
+
+                const dataType = e.dataTransfer.getData('text/plain');
+                const isCorrectStage = slot.dataset.stage === currentStage.name.split('(')[1].replace(')', '');
+                
+                if (slot.dataset.type === dataType && !slot.classList.contains('filled-slot') && isCorrectStage) {
+                    slot.classList.add('filled-slot');
+                    
+                    // Buscar el componente arrastrado en la lista para actualizar el texto del slot
+                    // Esto asume que draggedComponent está correctamente establecido en dragstart
+                    const componentName = draggedComponent ? draggedComponent.textContent : dataType;
+                    
+                    slot.textContent = componentName;
+                    
+                    // Marcar el componente original como 'dropped' y anular su referencia
+                    if (draggedComponent) draggedComponent.classList.add('dropped');
+                    draggedComponent = null;
+                    
+                    slot.dataset.filled = dataType;
+
+                    const filledSlots = document.querySelectorAll(`[data-stage="${slot.dataset.stage}"].filled-slot`).length;
+                    if (filledSlots === requiredComponents) {
+                        builderCheckBtn.disabled = false;
+                    }
+                }
+            });
+        });
+    }
+
+
+    function checkBuilder() {
+        let correctCount = 0;
+        const slots = currentStage.slots;
+        const totalSlots = slots.length;
+        builderCheckBtn.disabled = true;
+
+        slots.forEach(slot => {
+            const requiredType = slot.dataset.type;
+            const filledType = slot.dataset.filled;
+
+            if (requiredType === filledType) {
+                slot.style.borderColor = VAR_COLOR_GREEN;
+                slot.style.boxShadow = `0 0 10px ${VAR_COLOR_GREEN}`;
+                correctCount++;
+            } else {
+                slot.style.borderColor = VAR_COLOR_RED;
+                slot.style.boxShadow = `0 0 10px ${VAR_COLOR_RED}`;
+            }
+        });
+
+        builderCheckBtn.classList.add('hidden');
+        
+        if (correctCount === totalSlots) {
+            if (currentStage === STAGE_PC) {
+                setFeedback(builderFeedback, `✅ ¡Ensamblaje de PC Exitoso! ${correctCount}/${totalSlots} componentes en su lugar.`, 'success');
+                builderNextBtn.classList.remove('hidden');
+            } else {
+                setFeedback(builderFeedback, `🎉 ¡Reto de Red Superado! ${correctCount}/${totalSlots} elementos conectados. ¡Misión Completa!`, 'success');
+                builderRestartBtn.classList.remove('hidden');
+            }
+        } else {
+            setFeedback(builderFeedback, `❌ Error de Ensamblaje. Solo ${correctCount}/${totalSlots} componentes están correctos.`, 'error');
+            builderRestartBtn.classList.remove('hidden');
+        }
+    }
+    
+    function nextBuilderStage() {
+        if (currentStage === STAGE_PC) {
+            currentStage = STAGE_LAN;
+            // Transición Visual
+            computerCase.style.opacity = '0';
+            setTimeout(() => {
+                computerCase.classList.add('hidden');
+                networkDiagram.classList.remove('hidden');
+                networkDiagram.style.opacity = '1';
+                loadStage(currentStage);
+                setFeedback(builderFeedback, '¡Bien! Ahora arma la Red Local (LAN).', 'info');
+            }, 500); 
+        }
+    }
+
+
+    // --- 3. DESAFÍO DE CLASIFICACIÓN (CLASSIFICATION) ---
+
+    const CLASSIFICATION_ITEMS = [
+        { name: "CPU", category: "Hardware" },
+        { name: "RAM", category: "Hardware" },
+        { name: "Sistema Operativo", category: "Software" },
+        { name: "Router", category: "Red" },
+        { name: "Aplicación Móvil", category: "Software" },
+        { name: "Cable Ethernet", category: "Red" },
+        { name: "Disco SSD", category: "Hardware" },
+        { name: "Antivirus", category: "Software" },
+        { name: "Servidor Web", category: "Red" }
+    ];
+
+    const itemPool = document.getElementById('item-pool');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const classificationFeedback = document.getElementById('classification-feedback');
+    const classificationCheckBtn = document.getElementById('classification-check-btn');
+    const classificationRestartBtn = document.getElementById('classification-restart-btn');
+
+    let itemsDroppedCount = 0;
+    const totalItems = CLASSIFICATION_ITEMS.length;
+
+    function initClassificationGame() {
+        itemPool.innerHTML = '<div style="font-weight: bold; color: var(--color-pink-light); margin-bottom: 10px; text-align: center;">Términos a Clasificar:</div>';
+        
+        dropZones.forEach(zone => {
+            // Reset visual and content
+            zone.innerHTML = `<h3>${zone.dataset.category === 'Red' ? '🌐 RED' : (zone.dataset.category === 'Hardware' ? '⚙️ HARDWARE' : '💾 SOFTWARE')}</h3>`;
+            zone.style.borderColor = VAR_COLOR_PURPLE_MEDIUM;
+            zone.style.backgroundColor = 'rgba(44, 24, 71, 0.8)';
+            zone.dataset.correctlyDropped = 0; // Reset counter for checking
+        });
+
+        classificationCheckBtn.classList.remove('hidden');
+        classificationRestartBtn.classList.add('hidden');
+        classificationCheckBtn.disabled = true;
+        itemsDroppedCount = 0;
+        
+        setFeedback(classificationFeedback, 'Arrastra y suelta los términos en la categoría correcta.', 'info');
+
+        // Shuffle and render items
+        CLASSIFICATION_ITEMS.slice().sort(() => Math.random() - 0.5).forEach((item, index) => {
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('item-draggable');
+            itemElement.textContent = item.name;
+            itemElement.dataset.category = item.category;
+            itemElement.dataset.id = index;
+            itemElement.setAttribute('draggable', true);
+            
+            itemElement.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', item.name);
+                e.dataTransfer.setData('data/category', item.category);
+                e.dataTransfer.setData('data/id', itemElement.dataset.id);
+                setTimeout(() => e.target.style.opacity = '0.4', 0);
+            });
+            itemElement.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+
+            itemPool.appendChild(itemElement);
+        });
+        
+        // Setup drop zones
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                zone.classList.add('drag-hover');
+            });
+            zone.addEventListener('dragleave', (e) => {
+                zone.classList.remove('drag-hover');
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-hover');
+                
+                const itemName = e.dataTransfer.getData('text/plain');
+                const itemCategory = e.dataTransfer.getData('data/category');
+                const itemId = e.dataTransfer.getData('data/id');
+                const requiredCategory = zone.dataset.category;
+                
+                // Logic: Append item to zone and mark it as successfully dropped from the pool
+                const droppedElement = document.querySelector(`.item-draggable[data-id="${itemId}"]`);
+                if (droppedElement) {
+                    droppedElement.remove(); // Remove from pool
+
+                    const droppedDisplay = document.createElement('span');
+                    droppedDisplay.classList.add('dropped-item');
+                    droppedDisplay.textContent = itemName;
+                    droppedDisplay.dataset.originalCategory = itemCategory;
+                    droppedDisplay.dataset.droppedIn = requiredCategory;
+                    
+                    if (itemCategory === requiredCategory) {
+                        droppedDisplay.dataset.correct = 'true';
+                        zone.dataset.correctlyDropped = parseInt(zone.dataset.correctlyDropped) + 1;
+                    } else {
+                        droppedDisplay.dataset.correct = 'false';
+                    }
+
+                    zone.appendChild(droppedDisplay);
+                    itemsDroppedCount++;
+
+                    if (itemsDroppedCount === totalItems) {
+                        classificationCheckBtn.disabled = false;
+                        setFeedback(classificationFeedback, 'Todos los términos están clasificados. ¡Comprueba el resultado!', 'info');
+                    }
+                }
+            });
+        });
+    }
+
+    function checkClassification() {
+        let correctCount = 0;
+        
+        document.querySelectorAll('.dropped-item').forEach(item => {
+            const isCorrect = item.dataset.correct === 'true';
+            if (isCorrect) {
+                item.style.backgroundColor = VAR_COLOR_GREEN;
+                item.style.color = 'white';
+                correctCount++;
+            } else {
+                item.style.backgroundColor = VAR_COLOR_RED;
+                item.style.color = 'white';
+            }
+        });
+
+        dropZones.forEach(zone => {
+            const totalInZone = zone.querySelectorAll('.dropped-item').length;
+            const correctInZone = Array.from(zone.querySelectorAll('.dropped-item')).filter(item => item.dataset.correct === 'true').length;
+            
+            if (totalInZone === correctInZone) {
+                zone.style.borderColor = VAR_COLOR_GREEN;
+            } else {
+                zone.style.borderColor = VAR_COLOR_RED;
+            }
+        });
+
+        classificationCheckBtn.classList.add('hidden');
+        classificationRestartBtn.classList.remove('hidden');
+
+        if (correctCount === totalItems) {
+            setFeedback(classificationFeedback, `🎉 ¡Clasificación Perfecta! ${correctCount}/${totalItems} términos correctos.`, 'success');
+        } else {
+            setFeedback(classificationFeedback, `❌ Inténtalo de nuevo. Solo ${correctCount}/${totalItems} términos están en la categoría correcta.`, 'error');
+        }
+    }
+    
+    // --- Asignación de Eventos ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asignar eventos a los botones de control
+        if (triviaCheckBtn) triviaCheckBtn.onclick = checkTrivia;
+        if (triviaRestartBtn) triviaRestartBtn.onclick = initTriviaGame;
+        if (builderCheckBtn) builderCheckBtn.onclick = checkBuilder;
+        if (builderNextBtn) builderNextBtn.onclick = nextBuilderStage;
+        if (builderRestartBtn) builderRestartBtn.onclick = initPCBuilderGame;
+        
+        // Eventos de la nueva sección de Clasificación
+        if (classificationCheckBtn) classificationCheckBtn.onclick = checkClassification;
+        if (classificationRestartBtn) classificationRestartBtn.onclick = initClassificationGame;
+
+        // Mostrar el juego inicial
+        showGame('trivia');
+    });
+
+</script>
+
+</body>
+</html>
